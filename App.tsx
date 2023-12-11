@@ -1,24 +1,50 @@
-import {View, Text} from 'react-native';
-import React from 'react';
+import firestore from '@react-native-firebase/firestore';
+import React, {useEffect, useState} from 'react';
+import {FlatList, SafeAreaView, Text, View} from 'react-native';
 
 const App = () => {
+  const [posts, setPosts] = useState<any[]>([]);
+
+  useEffect(() => {
+    firestore()
+      .collection('posts')
+      .onSnapshot(snap => {
+        if (!snap.empty) {
+          const items: any = [];
+
+          snap.forEach(item =>
+            items.push({
+              id: item.id,
+              ...item.data(),
+            }),
+          );
+
+          setPosts(items);
+        } else {
+          console.log('Data not found');
+        }
+      });
+  }, []);
+
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}>
-      <Text style={{fontSize: 22, fontWeight: 'bold', textAlign: 'center'}}>
-        How to connect firebase to React Native apps
-      </Text>
-      <Text style={{fontSize: 32, fontWeight: 'bold', textAlign: 'center'}}>
-        2023
-      </Text>
-      <Text style={{fontSize: 22, fontWeight: 'bold', textAlign: 'center'}}>
-        Android | iOS
-      </Text>
-    </View>
+    <SafeAreaView style={{flex: 1}}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          data={posts}
+          renderItem={({item}) => (
+            <View style={{paddingVertical: 12, paddingHorizontal: 16}}>
+              <Text>{item.title}</Text>
+            </View>
+          )}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 
